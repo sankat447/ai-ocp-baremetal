@@ -1,0 +1,152 @@
+apiVersion: v1alpha1
+kind: AgentConfig
+metadata:
+  name: aitp-lab
+
+rendezvousIP: 192.168.102.5
+
+additionalNTPSources:
+  - time.google.com
+  - 0.rhel.pool.ntp.org
+
+hosts:
+  - hostname: master-0
+    role: master
+    rootDeviceHints:
+      deviceName: /dev/nvme0n1
+    interfaces:
+      - name: eno1
+        macAddress: BC:97:E1:D4:9D:C0
+      - name: eno2
+        macAddress: BC:97:E1:D4:9D:C1
+    networkConfig:
+      interfaces:
+        - name: bond0
+          type: bond
+          state: up
+          ipv4:
+            enabled: true
+            address:
+              - ip: 192.168.102.5
+                prefix-length: 24
+            dhcp: false
+          link-aggregation:
+            mode: 802.3ad
+            port:
+              - eno1
+              - eno2
+        - name: bond0.103
+          type: vlan
+          state: up
+          vlan:
+            base-iface: bond0
+            id: 103
+          ipv4:
+            enabled: true
+            address:
+              - ip: 192.168.103.5
+                prefix-length: 24
+            dhcp: false
+      dns-resolver:
+        config:
+          server:
+            - 192.168.101.1
+      routes:
+        config:
+          - destination: 0.0.0.0/0
+            next-hop-address: 192.168.102.1
+            next-hop-interface: bond0
+
+  - hostname: master-1
+    role: master
+    rootDeviceHints:
+      deviceName: /dev/nvme0n1
+    interfaces:
+      - name: eno1
+        macAddress: BC:97:E1:D4:B6:80
+      - name: eno2
+        macAddress: BC:97:E1:D4:B6:81
+    networkConfig:
+      interfaces:
+        - name: bond0
+          type: bond
+          state: up
+          ipv4:
+            enabled: true
+            address:
+              - ip: 192.168.102.6
+                prefix-length: 24
+            dhcp: false
+          link-aggregation:
+            mode: 802.3ad
+            port:
+              - eno1
+              - eno2
+        - name: bond0.103
+          type: vlan
+          state: up
+          vlan:
+            base-iface: bond0
+            id: 103
+          ipv4:
+            enabled: true
+            address:
+              - ip: 192.168.103.6
+                prefix-length: 24
+            dhcp: false
+      dns-resolver:
+        config:
+          server:
+            - 192.168.101.1
+      routes:
+        config:
+          - destination: 0.0.0.0/0
+            next-hop-address: 192.168.102.1
+            next-hop-interface: bond0
+
+  - hostname: master-2
+    role: master
+    rootDeviceHints:
+      deviceName: /dev/nvme0n1
+    interfaces:
+      - name: eno1
+        macAddress: BC:97:E1:D5:17:10
+      - name: eno2
+        macAddress: BC:97:E1:D5:17:11
+    networkConfig:
+      interfaces:
+        - name: bond0
+          type: bond
+          state: up
+          ipv4:
+            enabled: true
+            address:
+              - ip: 192.168.102.7
+                prefix-length: 24
+            dhcp: false
+          link-aggregation:
+            mode: 802.3ad
+            port:
+              - eno1
+              - eno2
+        - name: bond0.103
+          type: vlan
+          state: up
+          vlan:
+            base-iface: bond0
+            id: 103
+          ipv4:
+            enabled: true
+            address:
+              - ip: 192.168.103.7
+                prefix-length: 24
+            dhcp: false
+      dns-resolver:
+        config:
+          server:
+            - 192.168.101.1
+      routes:
+        config:
+          - destination: 0.0.0.0/0
+            next-hop-address: 192.168.102.1
+            next-hop-interface: bond0

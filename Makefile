@@ -53,7 +53,7 @@ operators:
 	oc apply -f 04-operators/acs-operator/
 	oc apply -f 04-operators/sso-operator/
 	oc apply -f 04-operators/servicemesh-operator/
-	@echo "Waiting for operators to be ready..."
+	@echo "Waiting for operators..."
 	sleep 300
 	oc apply -f 04-operators/odf-operator/storagecluster.yaml
 	@echo "Waiting for ODF storage cluster..."

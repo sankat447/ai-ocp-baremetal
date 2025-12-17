@@ -1,0 +1,15 @@
+# DHCP Reservations (if using DHCP)
+# Configure these on your DHCP server
+
+reservations:
+  - hostname: master-0
+    mac: "BC:97:E1:D4:9D:C0"
+    ip: 192.168.102.5
+    
+  - hostname: master-1
+    mac: "BC:97:E1:D4:B6:80"
+    ip: 192.168.102.6
+    
+  - hostname: master-2
+    mac: "BC:97:E1:D5:17:10"
+    ip: 192.168.102.7

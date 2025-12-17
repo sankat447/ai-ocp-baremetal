@@ -1,0 +1,42 @@
+! Arista SW2 Configuration for AITP Lab
+!
+hostname SW2-AITP-LAB
+!
+vlan 101
+   name MGMT-IDRAC
+!
+vlan 102
+   name OCP-CLUSTER
+!
+vlan 103
+   name OCP-STORAGE
+!
+! Node 1 - Port 11
+interface Ethernet11
+   description master-0-nic2
+   switchport mode trunk
+   switchport trunk allowed vlan 102,103
+   switchport trunk native vlan 102
+   spanning-tree portfast
+!
+! Node 2 - Port 12
+interface Ethernet12
+   description master-1-nic2
+   switchport mode trunk
+   switchport trunk allowed vlan 102,103
+   switchport trunk native vlan 102
+   spanning-tree portfast
+!
+! Node 3 - Port 13
+interface Ethernet13
+   description master-2-nic2
+   switchport mode trunk
+   switchport trunk allowed vlan 102,103
+   switchport trunk native vlan 102
+   spanning-tree portfast
+!
+! iDRAC port
+interface Ethernet19
+   description master-1-idrac
+   switchport access vlan 101
+   spanning-tree portfast

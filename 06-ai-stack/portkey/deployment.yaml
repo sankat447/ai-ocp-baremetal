@@ -1,0 +1,109 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: portkey-config
+  namespace: aitp-ai
+data:
+  config.yaml: |
+    providers:
+      - name: openai
+        type: openai
+        models:
+          - gpt-4-turbo
+          - gpt-4o
+          - gpt-3.5-turbo
+          - text-embedding-3-large
+      - name: bedrock
+        type: aws-bedrock
+        region: us-east-1
+        models:
+          - anthropic.claude-3-sonnet
+          - anthropic.claude-3-haiku
+    routing:
+      default:
+        strategy: round-robin
+        providers: [openai]
+        fallback: bedrock
+    rate_limits:
+      default:
+        requests_per_minute: 500
+        tokens_per_minute: 50000
+    caching:
+      enabled: true
+      ttl: 3600
+      store: redis
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: portkey-gateway
+  namespace: aitp-ai
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: portkey-gateway
+  template:
+    metadata:
+      labels:
+        app: portkey-gateway
+    spec:
+      containers:
+        - name: portkey
+          image: portkeyai/gateway:latest
+          ports:
+            - containerPort: 8787
+          env:
+            - name: PORTKEY_CONFIG_PATH
+              value: "/config/config.yaml"
+            - name: OPENAI_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: llm-secrets
+                  key: openai-api-key
+            - name: REDIS_URL
+              value: "redis://aitp-redis.aitp-data:6379"
+          resources:
+            requests:
+              cpu: "500m"
+              memory: 512Mi
+            limits:
+              cpu: "2"
+              memory: 2Gi
+          volumeMounts:
+            - name: config
+              mountPath: /config
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8787
+            initialDelaySeconds: 10
+      volumes:
+        - name: config
+          configMap:
+            name: portkey-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: portkey-gateway
+  namespace: aitp-ai
+spec:
+  selector:
+    app: portkey-gateway
+  ports:
+    - port: 8787
+      targetPort: 8787
+---
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: portkey-gateway
+  namespace: aitp-ai
+spec:
+  host: llm-gateway.apps.aitp-lab.local
+  to:
+    kind: Service
+    name: portkey-gateway
+  tls:
+    termination: edge

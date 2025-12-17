@@ -1,0 +1,67 @@
+apiVersion: postgres-operator.crunchydata.com/v1beta1
+kind: PostgresCluster
+metadata:
+  name: aitp-postgres
+  namespace: aitp-data
+spec:
+  postgresVersion: 15
+  instances:
+    - name: pgha
+      replicas: 3
+      resources:
+        limits:
+          cpu: "4"
+          memory: 8Gi
+        requests:
+          cpu: "2"
+          memory: 4Gi
+      dataVolumeClaimSpec:
+        storageClassName: ocs-storagecluster-ceph-rbd
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: 100Gi
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchLabels:
+                  postgres-operator.crunchydata.com/cluster: aitp-postgres
+              topologyKey: kubernetes.io/hostname
+  patroni:
+    dynamicConfiguration:
+      postgresql:
+        parameters:
+          shared_buffers: "2GB"
+          effective_cache_size: "6GB"
+          work_mem: "64MB"
+          max_connections: "200"
+          shared_preload_libraries: "pgvector"
+  users:
+    - name: aitp-admin
+      databases:
+        - aitp
+      options: "SUPERUSER"
+    - name: langchain
+      databases:
+        - vectors
+        - langchain
+    - name: n8n
+      databases:
+        - n8n
+  backups:
+    pgbackrest:
+      repos:
+        - name: repo1
+          schedules:
+            full: "0 1 * * 0"
+            incremental: "0 1 * * 1-6"
+          volume:
+            volumeClaimSpec:
+              storageClassName: ocs-storagecluster-ceph-rbd
+              accessModes:
+                - ReadWriteOnce
+              resources:
+                requests:
+                  storage: 200Gi

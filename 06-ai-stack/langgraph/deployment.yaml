@@ -1,0 +1,64 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: langgraph-workers
+  namespace: aitp-ai
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: langgraph-worker
+  template:
+    metadata:
+      labels:
+        app: langgraph-worker
+    spec:
+      containers:
+        - name: worker
+          image: your-registry/aitp-langgraph:latest
+          env:
+            - name: WORKER_TYPE
+              value: "agent"
+            - name: OPENAI_API_BASE
+              value: "http://portkey-gateway:8787/v1"
+            - name: OPENAI_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: langchain-secrets
+                  key: portkey-virtual-key
+            - name: CHECKPOINT_STORE
+              value: "postgres"
+            - name: POSTGRES_URL
+              valueFrom:
+                secretKeyRef:
+                  name: langchain-secrets
+                  key: postgres-url
+            - name: REDIS_URL
+              value: "redis://aitp-redis.aitp-data:6379"
+          resources:
+            requests:
+              cpu: "2"
+              memory: 2Gi
+            limits:
+              cpu: "4"
+              memory: 8Gi
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: langgraph-hpa
+  namespace: aitp-ai
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: langgraph-workers
+  minReplicas: 2
+  maxReplicas: 10
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70

@@ -1,0 +1,81 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: langserve
+  namespace: aitp-ai
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: langserve
+  template:
+    metadata:
+      labels:
+        app: langserve
+    spec:
+      containers:
+        - name: langserve
+          image: your-registry/aitp-langserve:latest
+          ports:
+            - containerPort: 8000
+          env:
+            - name: OPENAI_API_BASE
+              value: "http://portkey-gateway:8787/v1"
+            - name: OPENAI_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: langchain-secrets
+                  key: portkey-virtual-key
+            - name: POSTGRES_CONNECTION_STRING
+              valueFrom:
+                secretKeyRef:
+                  name: langchain-secrets
+                  key: postgres-url
+            - name: REDIS_URL
+              value: "redis://aitp-redis.aitp-data:6379"
+            - name: LANGCHAIN_TRACING_V2
+              value: "true"
+            - name: LANGCHAIN_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: langchain-secrets
+                  key: langsmith-api-key
+            - name: LANGCHAIN_PROJECT
+              value: "aitp-lab"
+          resources:
+            requests:
+              cpu: "1"
+              memory: 1Gi
+            limits:
+              cpu: "4"
+              memory: 4Gi
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 15
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: langserve
+  namespace: aitp-ai
+spec:
+  selector:
+    app: langserve
+  ports:
+    - port: 8000
+      targetPort: 8000
+---
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: langserve
+  namespace: aitp-ai
+spec:
+  host: langserve.apps.aitp-lab.local
+  to:
+    kind: Service
+    name: langserve
+  tls:
+    termination: edge

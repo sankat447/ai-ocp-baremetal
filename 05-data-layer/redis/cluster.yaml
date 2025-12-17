@@ -1,0 +1,48 @@
+apiVersion: redis.redis.opstreelabs.in/v1beta2
+kind: RedisCluster
+metadata:
+  name: aitp-redis
+  namespace: aitp-data
+spec:
+  clusterSize: 3
+  clusterVersion: v7
+  persistenceEnabled: true
+  kubernetesConfig:
+    image: redis:7.2-alpine
+    imagePullPolicy: IfNotPresent
+    resources:
+      requests:
+        cpu: "500m"
+        memory: 1Gi
+      limits:
+        cpu: "2"
+        memory: 4Gi
+  redisExporter:
+    enabled: true
+    image: quay.io/opstree/redis-exporter:v1.44.0
+  storage:
+    volumeClaimTemplate:
+      spec:
+        storageClassName: ocs-storagecluster-ceph-rbd
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 20Gi
+  redisConfig:
+    additionalRedisConfig: |
+      maxmemory 3gb
+      maxmemory-policy allkeys-lru
+      appendonly yes
+      appendfsync everysec
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: aitp-redis
+  namespace: aitp-data
+spec:
+  selector:
+    app: aitp-redis
+  ports:
+    - port: 6379
+      targetPort: 6379

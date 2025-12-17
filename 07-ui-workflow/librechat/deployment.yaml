@@ -1,0 +1,107 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: librechat-config
+  namespace: aitp-ui
+data:
+  librechat.yaml: |
+    version: 1.0.0
+    cache: true
+    endpoints:
+      openAI:
+        titleModel: "gpt-3.5-turbo"
+        plugins: true
+    registration:
+      socialLogins: ["openid"]
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: librechat
+  namespace: aitp-ui
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: librechat
+  template:
+    metadata:
+      labels:
+        app: librechat
+    spec:
+      containers:
+        - name: librechat
+          image: ghcr.io/danny-avila/librechat:latest
+          ports:
+            - containerPort: 3080
+          env:
+            - name: HOST
+              value: "0.0.0.0"
+            - name: MONGO_URI
+              valueFrom:
+                secretKeyRef:
+                  name: librechat-secrets
+                  key: mongo-uri
+            - name: OPENAI_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: librechat-secrets
+                  key: openai-key
+            - name: OPENAI_REVERSE_PROXY
+              value: "http://portkey-gateway.aitp-ai:8787/v1"
+            - name: DOMAIN_SERVER
+              value: "https://chat.apps.aitp-lab.local"
+            - name: DOMAIN_CLIENT
+              value: "https://chat.apps.aitp-lab.local"
+            - name: ALLOW_REGISTRATION
+              value: "true"
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: librechat-secrets
+                  key: jwt-secret
+            - name: JWT_REFRESH_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: librechat-secrets
+                  key: jwt-refresh-secret
+          resources:
+            requests:
+              cpu: "500m"
+              memory: 512Mi
+            limits:
+              cpu: "2"
+              memory: 2Gi
+          volumeMounts:
+            - name: config
+              mountPath: /app/librechat.yaml
+              subPath: librechat.yaml
+      volumes:
+        - name: config
+          configMap:
+            name: librechat-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: librechat
+  namespace: aitp-ui
+spec:
+  selector:
+    app: librechat
+  ports:
+    - port: 3080
+      targetPort: 3080
+---
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: librechat
+  namespace: aitp-ui
+spec:
+  host: chat.apps.aitp-lab.local
+  to:
+    kind: Service
+    name: librechat
+  tls:
+    termination: edge
