@@ -141,6 +141,7 @@ boot_nodes() {
 wait_for_install() {
     log_info "[6/7] Waiting for installation..."
     ./openshift-install agent wait-for bootstrap-complete --dir="${INSTALL_DIR}" --log-level=info
+    ./openshift-install agent wait-for bootstrap-complete --dir="${INSTALL_DIR}" --log-level=info
     ./openshift-install agent wait-for install-complete --dir="${INSTALL_DIR}" --log-level=info
 }
 
