@@ -1,5 +1,5 @@
 #!/bin/bash
-echo "=== AITP Cluster Validation ==="
+echo "=== AI Cluster (ocp419) Validation ==="
 
 echo ""
 echo "Nodes:"

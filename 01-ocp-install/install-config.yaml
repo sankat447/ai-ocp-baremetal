@@ -1,7 +1,7 @@
 apiVersion: v1
 metadata:
-  name: aitp-lab
-baseDomain: aitp-lab.local
+  name: ocp419
+baseDomain: crucible.iisl.com
 
 controlPlane:
   name: master

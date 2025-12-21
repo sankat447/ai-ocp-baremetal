@@ -3,7 +3,7 @@
 ## Common Issues
 
 ### OCP Installation Fails
-1. Check DNS resolution: `nslookup api.aitp-lab.local`
+1. Check DNS resolution: `nslookup api.ocp19.crucible.iisl.com`
 2. Verify iDRAC connectivity: `ping 192.168.101.5`
 3. Check ISO is mounted via iDRAC console
 

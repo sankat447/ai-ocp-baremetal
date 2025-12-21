@@ -4,7 +4,7 @@ SHELL := /bin/bash
 
 # Main deployment target
 all: prerequisites install-ocp post-install gitops operators data-layer ai-stack ui-workflow
-	@echo "AITP Stack deployment complete!"
+	@echo "AI Stack deployment complete!"
 
 # Phase 0: Prerequisites
 prerequisites:
@@ -19,6 +19,7 @@ install-ocp:
 	cd 01-ocp-install && ./scripts/install.sh
 	@echo "Waiting for cluster to be ready..."
 	sleep 60
+login-ocp:
 	export KUBECONFIG=01-ocp-install/cluster-install/auth/kubeconfig && \
 	oc wait --for=condition=Available clusterversion/version --timeout=30m
 

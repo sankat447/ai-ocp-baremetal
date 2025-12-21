@@ -1,7 +1,7 @@
 apiVersion: v1alpha1
 kind: AgentConfig
 metadata:
-  name: aitp-lab
+  name: ocp419
 
 rendezvousIP: 192.168.102.5
 
@@ -10,10 +10,15 @@ additionalNTPSources:
   - 0.rhel.pool.ntp.org
 
 hosts:
+  #############################################
+  # MASTER-0 (Node 1)
+  #############################################
   - hostname: master-0
     role: master
     rootDeviceHints:
-      deviceName: /dev/nvme0n1
+      model: "DELLBOSS"
+      rotational: false
+      minSizeGigabytes: 200
     interfaces:
       - name: eno1
         macAddress: BC:97:E1:D4:9D:C0
@@ -38,7 +43,7 @@ hosts:
         - name: bond0.103
           type: vlan
           state: up
-          vlan:
+           vlan:
             base-iface: bond0
             id: 103
           ipv4:
@@ -50,17 +55,26 @@ hosts:
       dns-resolver:
         config:
           server:
-            - 192.168.101.1
+            - 8.8.8.8
+            - 8.8.4.4
+            - 192.168.2.100
+          search:
+            - crucible.iisl.com
       routes:
         config:
           - destination: 0.0.0.0/0
             next-hop-address: 192.168.102.1
             next-hop-interface: bond0
 
+  #############################################
+  # MASTER-1 (Node 2)
+  #############################################
   - hostname: master-1
     role: master
     rootDeviceHints:
-      deviceName: /dev/nvme0n1
+      model: "DELLBOSS"
+      rotational: false
+      minSizeGigabytes: 200
     interfaces:
       - name: eno1
         macAddress: BC:97:E1:D4:B6:80
@@ -71,7 +85,7 @@ hosts:
         - name: bond0
           type: bond
           state: up
-          ipv4:
+          ipv4:         
             enabled: true
             address:
               - ip: 192.168.102.6
@@ -97,17 +111,26 @@ hosts:
       dns-resolver:
         config:
           server:
-            - 192.168.101.1
+            - 8.8.8.8
+            - 8.8.4.4
+            - 192.168.2.100
+          search:
+            - crucible.iisl.com
       routes:
         config:
           - destination: 0.0.0.0/0
             next-hop-address: 192.168.102.1
             next-hop-interface: bond0
 
+  #############################################
+  # MASTER-2 (Node 3)
+  #############################################
   - hostname: master-2
     role: master
     rootDeviceHints:
-      deviceName: /dev/nvme0n1
+      model: "DELLBOSS"
+      rotational: false   
+      minSizeGigabytes: 200
     interfaces:
       - name: eno1
         macAddress: BC:97:E1:D5:17:10
@@ -144,9 +167,13 @@ hosts:
       dns-resolver:
         config:
           server:
-            - 192.168.101.1
-      routes:
+            - 8.8.8.8
+            - 8.8.4.4
+            - 192.168.2.100
+          search:
+            - crucible.iisl.com
+      routes:  
         config:
           - destination: 0.0.0.0/0
             next-hop-address: 192.168.102.1
-            next-hop-interface: bond0
+            next-hop-interface: bond0                
