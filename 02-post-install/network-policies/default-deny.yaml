@@ -1,4 +1,7 @@
 apiVersion: networking.k8s.io/v1
+kind: Namespace
+metadata:
+  name: aitp-system  
 kind: NetworkPolicy
 metadata:
   name: default-deny-all

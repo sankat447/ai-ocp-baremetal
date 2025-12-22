@@ -7,7 +7,7 @@ spec:
   postgresVersion: 15
   instances:
     - name: pgha
-      replicas: 3
+      replicas: 2
       resources:
         limits:
           cpu: "4"
@@ -16,7 +16,7 @@ spec:
           cpu: "2"
           memory: 4Gi
       dataVolumeClaimSpec:
-        storageClassName: ocs-storagecluster-ceph-rbd
+        storageClassName: local-nvme
         accessModes:
           - ReadWriteOnce
         resources:
@@ -37,7 +37,7 @@ spec:
           effective_cache_size: "6GB"
           work_mem: "64MB"
           max_connections: "200"
-          shared_preload_libraries: "pgvector"
+          shared_preload_libraries: "pgaudit"
   users:
     - name: aitp-admin
       databases:
@@ -59,7 +59,7 @@ spec:
             incremental: "0 1 * * 1-6"
           volume:
             volumeClaimSpec:
-              storageClassName: ocs-storagecluster-ceph-rbd
+              storageClassName: local-nvme
               accessModes:
                 - ReadWriteOnce
               resources:

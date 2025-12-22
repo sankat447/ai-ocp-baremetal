@@ -31,7 +31,7 @@ platform:
       - 192.168.102.11
 
 # Replace with your actual pull secret from cloud.redhat.com
-pullSecret: 'YOUR_PULL_SECRET_HERE'
+pullSecret: 'SECRET'
 
 # Replace with your SSH public key
-sshKey: 'ssh-rsa YOUR_SSH_PUBLIC_KEY'
+sshKey: 'PUB-KEY'

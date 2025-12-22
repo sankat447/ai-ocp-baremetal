@@ -101,7 +101,7 @@ metadata:
   name: portkey-gateway
   namespace: aitp-ai
 spec:
-  host: llm-gateway.apps.aitp-lab.local
+  host: llm-gateway.apps.ocp419.crucible.iisl.com
   to:
     kind: Service
     name: portkey-gateway

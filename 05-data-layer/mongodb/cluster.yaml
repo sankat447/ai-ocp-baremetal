@@ -1,62 +1,27 @@
-apiVersion: mongodbcommunity.mongodb.com/v1
-kind: MongoDBCommunity
+apiVersion: opstreelabs.in/v1alpha1
+kind: MongoDBCluster
 metadata:
   name: aitp-mongodb
   namespace: aitp-data
 spec:
-  members: 3
-  type: ReplicaSet
-  version: "6.0.12"
-  security:
-    authentication:
-      modes: ["SCRAM"]
-  users:
-    - name: aitp-admin
-      db: admin
-      passwordSecretRef:
-        name: mongodb-admin-password
-      roles:
-        - name: clusterAdmin
-          db: admin
-        - name: userAdminAnyDatabase
-          db: admin
-        - name: readWriteAnyDatabase
-          db: admin
-    - name: langchain
-      db: conversations
-      passwordSecretRef:
-        name: mongodb-langchain-password
-      roles:
-        - name: readWrite
-          db: conversations
-        - name: readWrite
-          db: memory
-    - name: librechat
-      db: librechat
-      passwordSecretRef:
-        name: mongodb-librechat-password
-      roles:
-        - name: readWrite
-          db: librechat
-  statefulSet:
-    spec:
-      template:
-        spec:
-          containers:
-            - name: mongod
-              resources:
-                limits:
-                  cpu: "2"
-                  memory: 4Gi
-                requests:
-                  cpu: "1"
-                  memory: 2Gi
-      volumeClaimTemplates:
-        - metadata:
-            name: data-volume
-          spec:
-            storageClassName: ocs-storagecluster-ceph-rbd
-            accessModes: ["ReadWriteOnce"]
-            resources:
-              requests:
-                storage: 50Gi
+  clusterSize: 3
+  kubernetesConfig:
+    image: mongo:4.4
+    imagePullPolicy: IfNotPresent
+    resources:
+      limits:
+        cpu: "2"
+        memory: 4Gi
+      requests:
+        cpu: "1"
+        memory: 2Gi
+  mongoDBSecurity:
+    mongoDBAdminUser: aitp-admin
+    secretRef:
+      name: mongodb-admin-password
+      key: password
+  storage:
+    accessModes:
+      - ReadWriteOnce
+    storageClass: local-nvme
+    storageSize: 50Gi

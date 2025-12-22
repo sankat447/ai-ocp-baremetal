@@ -20,13 +20,13 @@ spec:
             - containerPort: 5678
           env:
             - name: N8N_HOST
-              value: "workflows.apps.aitp-lab.local"
+              value: "workflows.apps.ocp419.crucible.iisl.com"
             - name: N8N_PORT
               value: "5678"
             - name: N8N_PROTOCOL
               value: "https"
             - name: WEBHOOK_URL
-              value: "https://workflows.apps.aitp-lab.local/"
+              value: "https://workflows.apps.ocp419.crucible.iisl.com/"
             - name: DB_TYPE
               value: "postgresdb"
             - name: DB_POSTGRESDB_HOST
@@ -71,7 +71,7 @@ metadata:
   name: n8n-data
   namespace: aitp-ui
 spec:
-  storageClassName: ocs-storagecluster-ceph-rbd
+  storageClassName: local-nvme
   accessModes:
     - ReadWriteOnce
   resources:
@@ -96,7 +96,7 @@ metadata:
   name: n8n
   namespace: aitp-ui
 spec:
-  host: workflows.apps.aitp-lab.local
+  host: workflows.apps.ocp419.crucible.iisl.com
   to:
     kind: Service
     name: n8n

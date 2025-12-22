@@ -73,7 +73,7 @@ metadata:
   name: langserve
   namespace: aitp-ai
 spec:
-  host: langserve.apps.aitp-lab.local
+  host: langserve.apps.ocp419.crucible.iisl.com
   to:
     kind: Service
     name: langserve

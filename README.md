@@ -1,7 +1,7 @@
-# AI Canonical Agentic Stack - Bare Metal Installation
+# AITP Canonical Agentic Stack - Bare Metal Installation
 
 ## Overview
-This repository contains Infrastructure as Code (IaC) for deploying the AI Agentic Stack on bare-metal servers using RedHat OpenShift Container Platform 4.19.9
+This repository contains Infrastructure as Code (IaC) for deploying the AITP Agentic Stack on bare-metal servers using RedHat OpenShift Container Platform 4.14.
 
 ## Hardware Requirements
 - 3x Dell VxRail E560F servers
@@ -26,8 +26,7 @@ make ui-workflow
 ```
 
 ## Cluster Details
-- **Name:** ocp419
-- **Domain:** crucible.iisl.com
+- **Domain:** aitp-lab.local
 - **API VIP:** 192.168.102.10
 - **Ingress VIP:** 192.168.102.11
 - **Nodes:** 192.168.102.5-7

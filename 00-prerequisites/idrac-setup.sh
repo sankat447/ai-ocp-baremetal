@@ -5,7 +5,7 @@ set -euo pipefail
 
 IDRAC_IPS=("192.168.101.5" "192.168.101.6" "192.168.101.7")
 IDRAC_USER="${IDRAC_USER:-root}"
-IDRAC_PASS="${IDRAC_PASSWORD:-calvin}"
+IDRAC_PASS="${IDRAC_PASSWORD:-il02iis!}"
 
 echo "=== Dell iDRAC Configuration Script ==="
 

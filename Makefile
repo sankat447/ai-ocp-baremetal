@@ -4,7 +4,7 @@ SHELL := /bin/bash
 
 # Main deployment target
 all: prerequisites install-ocp post-install gitops operators data-layer ai-stack ui-workflow
-	@echo "AI Stack deployment complete!"
+	@echo "AITP Stack deployment complete!"
 
 # Phase 0: Prerequisites
 prerequisites:
@@ -19,7 +19,6 @@ install-ocp:
 	cd 01-ocp-install && ./scripts/install.sh
 	@echo "Waiting for cluster to be ready..."
 	sleep 60
-login-ocp:
 	export KUBECONFIG=01-ocp-install/cluster-install/auth/kubeconfig && \
 	oc wait --for=condition=Available clusterversion/version --timeout=30m
 
@@ -38,7 +37,7 @@ gitops:
 	oc apply -f 03-gitops-bootstrap/argocd/operator.yaml
 	@echo "Waiting for GitOps operator..."
 	sleep 120
-	oc wait --for=condition=Ready pod -l app.kubernetes.io/name=openshift-gitops-operator -n openshift-gitops-operator --timeout=5m
+	oc wait --for=condition=Ready pod -l app.kubernetes.io/name=openshift-gitops-server -n openshift-gitops --timeout=5m
 	oc apply -f 03-gitops-bootstrap/argocd/argocd-instance.yaml
 	sleep 60
 	oc apply -f 03-gitops-bootstrap/app-of-apps/

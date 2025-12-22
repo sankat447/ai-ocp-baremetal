@@ -1,7 +1,7 @@
 # DNS Records for AITP Lab Cluster
 # Add these to your DNS server (BIND/CoreDNS/AD DNS)
 
-dns_zone: aitp-lab.local
+dns_zone: ocp419.crucible.iisl.com
 
 # API and Ingress VIPs
 records:
@@ -27,10 +27,10 @@ records:
 reverse_zone: 102.168.192.in-addr.arpa
 ptr_records:
   - ip: 5
-    name: master-0.aitp-lab.local
+    name: master-0.ocp419.crucible.iisl.com
   - ip: 6
-    name: master-1.aitp-lab.local
+    name: master-1.ocp419.crucible.iisl.com
   - ip: 7
-    name: master-2.aitp-lab.local
+    name: master-2.ocp419.crucible.iisl.com
   - ip: 10
-    name: api.aitp-lab.local
+    name: api.ocp419.crucible.iisl.com

@@ -1,12 +1,12 @@
 #!/bin/bash
 set -euo pipefail
 
-OCP_VERSION="4.19.9"
+OCP_VERSION="4.16.0"
 INSTALL_DIR="./cluster-install"
 
 RED='\033[0;31m'
 GREEN='\033[0;32m'
-YELLOW='\033[1;33m'cd ../
+YELLOW='\033[1;33m'
 NC='\033[0m'
 
 log_info() { echo -e "${GREEN}[INFO]${NC} $1"; }
@@ -63,8 +63,8 @@ prepare_install_dir() {
     log_info "[2/7] Preparing installation directory..."
     rm -rf "${INSTALL_DIR}"
     mkdir -p "${INSTALL_DIR}"
-    cp ./install-config.yaml "${INSTALL_DIR}/"
-    cp ./agent-config.yaml "${INSTALL_DIR}/"
+    cp ../install-config.yaml "${INSTALL_DIR}/"
+    cp ../agent-config.yaml "${INSTALL_DIR}/"
 }
 
 generate_iso() {
@@ -86,7 +86,7 @@ upload_iso() {
     
     IDRAC_IPS=("192.168.101.5" "192.168.101.6" "192.168.101.7")
     IDRAC_USER="${IDRAC_USER:-root}"
-    IDRAC_PASS="${IDRAC_PASSWORD:-calvin}"
+    IDRAC_PASS="${IDRAC_PASSWORD:-Cavin}"
     
     ISO_FILE=$(find "${INSTALL_DIR}" -name "agent.*.iso" | head -1)
     HTTP_SERVER_IP=$(hostname -I | awk '{print $1}')
@@ -140,7 +140,6 @@ boot_nodes() {
 
 wait_for_install() {
     log_info "[6/7] Waiting for installation..."
-    ./openshift-install agent wait-for bootstrap-complete --dir="${INSTALL_DIR}" --log-level=info
     ./openshift-install agent wait-for bootstrap-complete --dir="${INSTALL_DIR}" --log-level=info
     ./openshift-install agent wait-for install-complete --dir="${INSTALL_DIR}" --log-level=info
 }

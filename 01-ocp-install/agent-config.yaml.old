@@ -16,7 +16,7 @@ hosts:
   - hostname: master-0
     role: master
     rootDeviceHints:
-      serialNumber: "5e034232ff000010"
+      deviceName: /dev/sdc
     interfaces:
       - name: eno1
         macAddress: BC:97:E1:D4:9D:C0
@@ -34,16 +34,28 @@ hosts:
                 prefix-length: 24
             dhcp: false
           link-aggregation:
-            mode: active-backup
+            mode: 802.3ad
             port:
               - eno1
               - eno2
+        - name: bond0.103
+          type: vlan
+          state: up
+          vlan:
+            base-iface: bond0
+            id: 103
+          ipv4:
+            enabled: true
+            address:
+              - ip: 192.168.103.5
+                prefix-length: 24
+            dhcp: false
       dns-resolver:
         config:
           server:
-            - 192.168.2.100
             - 8.8.8.8
-            - 8.8.4.4  
+            - 8.8.4.4
+            - 192.168.2.100  
           search:
             - crucible.iisl.com
       routes:
@@ -58,7 +70,7 @@ hosts:
   - hostname: master-1
     role: master
     rootDeviceHints:
-      serialNumber: "3668a475b57d0010"
+      deviceName: /dev/sdc
     interfaces:
       - name: eno1
         macAddress: BC:97:E1:D4:B6:80
@@ -76,16 +88,28 @@ hosts:
                 prefix-length: 24
             dhcp: false
           link-aggregation:
-            mode: active-backup
+            mode: 802.3ad
             port:
               - eno1
               - eno2
+        - name: bond0.103
+          type: vlan
+          state: up
+          vlan:
+            base-iface: bond0
+            id: 103
+          ipv4:
+            enabled: true
+            address:
+              - ip: 192.168.103.6
+                prefix-length: 24
+            dhcp: false
       dns-resolver:
         config:
           server:
-            - 192.168.2.100
             - 8.8.8.8
-            - 8.8.4.4  
+            - 8.8.4.4
+            - 192.168.2.100  
           search:
             - crucible.iisl.com
       routes:
@@ -100,8 +124,7 @@ hosts:
   - hostname: master-2
     role: master
     rootDeviceHints:
-      serialNumber: "eff1824ca4f30010"
-#      minSizeGigabytes: 200
+      deviceName: /dev/sdc
     interfaces:
       - name: eno1
         macAddress: BC:97:E1:D5:17:10
@@ -119,16 +142,28 @@ hosts:
                 prefix-length: 24
             dhcp: false
           link-aggregation:
-            mode: active-backup
+            mode: 802.3ad
             port:
               - eno1
               - eno2
+        - name: bond0.103
+          type: vlan
+          state: up
+          vlan:
+            base-iface: bond0
+            id: 103
+          ipv4:
+            enabled: true
+            address:
+              - ip: 192.168.103.7
+                prefix-length: 24
+            dhcp: false
       dns-resolver:
         config:
           server:
-            - 192.168.2.100
             - 8.8.8.8
-            - 8.8.4.4  
+            - 8.8.4.4
+            - 192.168.2.100  
           search:
             - crucible.iisl.com
       routes:

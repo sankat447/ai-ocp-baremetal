@@ -1,11 +1,11 @@
 apiVersion: operators.coreos.com/v1alpha1
 kind: Subscription
 metadata:
-  name: mongodb-kubernetes-operator
+  name: mongodb-operator
   namespace: openshift-operators
 spec:
-  channel: stable
+  channel: alpha
   installPlanApproval: Automatic
-  name: mongodb-kubernetes-operator
+  name: mongodb-operator
   source: community-operators
   sourceNamespace: openshift-marketplace

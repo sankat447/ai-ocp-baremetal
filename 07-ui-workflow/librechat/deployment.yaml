@@ -50,9 +50,9 @@ spec:
             - name: OPENAI_REVERSE_PROXY
               value: "http://portkey-gateway.aitp-ai:8787/v1"
             - name: DOMAIN_SERVER
-              value: "https://chat.apps.aitp-lab.local"
+              value: "https://chat.apps.ocp419.crucible.iisl.com"
             - name: DOMAIN_CLIENT
-              value: "https://chat.apps.aitp-lab.local"
+              value: "https://chat.apps.ocp419.crucible.iisl.com"
             - name: ALLOW_REGISTRATION
               value: "true"
             - name: JWT_SECRET
@@ -99,7 +99,7 @@ metadata:
   name: librechat
   namespace: aitp-ui
 spec:
-  host: chat.apps.aitp-lab.local
+  host: chat.apps.ocp419.crucible.iisl.com
   to:
     kind: Service
     name: librechat
