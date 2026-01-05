@@ -19,7 +19,7 @@ install-ocp:
 	cd 01-ocp-install && ./scripts/install.sh
 	@echo "Waiting for cluster to be ready..."
 	sleep 60
-	export KUBECONFIG=01-ocp-install/cluster-install/auth/kubeconfig && \
+	export KUBECONFIG=01-ocp-install/scripts/cluster-install/auth/kubeconfig && \
 	oc wait --for=condition=Available clusterversion/version --timeout=30m
 
 # Phase 2: Post-Install

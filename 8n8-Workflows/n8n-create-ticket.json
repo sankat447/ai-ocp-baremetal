@@ -1,0 +1,72 @@
+{
+  "name": "Create Support Ticket",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "create-ticket",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "ticket-1111-2222-3333-444455556666",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1.1,
+      "position": [250, 300],
+      "webhookId": "create-ticket-webhook"
+    },
+    {
+      "parameters": {
+        "jsCode": "const ticketId = 'TKT-' + Date.now().toString(36).toUpperCase();\nconst timestamp = new Date().toISOString();\n\nreturn [{\n  json: {\n    success: true,\n    ticket_id: ticketId,\n    title: items[0].json.title,\n    description: items[0].json.description,\n    priority: items[0].json.priority,\n    category: items[0].json.category,\n    status: 'open',\n    created_at: timestamp,\n    message: `Ticket ${ticketId} created successfully`\n  }\n}];"
+      },
+      "id": "ticket-2222-3333-4444-555566667777",
+      "name": "Generate Ticket",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [500, 300]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "options": {}
+      },
+      "id": "ticket-3333-4444-5555-666677778888",
+      "name": "Respond to Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [750, 300]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Generate Ticket",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Ticket": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "tags": [],
+  "meta": {
+    "instanceId": "aitp-demo"
+  }
+}

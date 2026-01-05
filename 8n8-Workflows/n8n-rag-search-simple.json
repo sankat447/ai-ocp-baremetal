@@ -1,0 +1,95 @@
+{
+  "name": "RAG Knowledge Search",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "rag-search",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "a1b2c3d4-1111-2222-3333-444455556666",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1.1,
+      "position": [250, 300],
+      "webhookId": "rag-search-webhook"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT * FROM search_documents_simple('{{ $json.query }}', {{ $json.max_results || 5 }})",
+        "options": {}
+      },
+      "id": "a1b2c3d4-2222-3333-4444-555566667777",
+      "name": "Search PostgreSQL",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.3,
+      "position": [500, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const results = items.map(item => ({\n  id: item.json.id,\n  title: item.json.title,\n  content: item.json.content,\n  source: item.json.source,\n  relevance: Math.round(parseFloat(item.json.relevance || 0) * 100) + '%'\n}));\n\nreturn [{\n  json: {\n    success: true,\n    query: $('Webhook').item.json.query,\n    results: results,\n    count: results.length\n  }\n}];"
+      },
+      "id": "a1b2c3d4-3333-4444-5555-666677778888",
+      "name": "Format Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [750, 300]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "options": {}
+      },
+      "id": "a1b2c3d4-4444-5555-6666-777788889999",
+      "name": "Respond to Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1000, 300]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Search PostgreSQL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Search PostgreSQL": {
+      "main": [
+        [
+          {
+            "node": "Format Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Response": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "tags": [],
+  "meta": {
+    "instanceId": "aitp-demo"
+  }
+}
