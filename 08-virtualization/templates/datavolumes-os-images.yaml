@@ -1,0 +1,91 @@
+---
+# DataVolume for RHEL 9 Base Image
+# This imports a RHEL 9 QCOW2 image from a URL and creates a PVC
+apiVersion: cdi.kubevirt.io/v1beta1
+kind: DataVolume
+metadata:
+  name: rhel9-base-image
+  namespace: openshift-virtualization-os-images
+  labels:
+    app.kubernetes.io/name: rhel9-base
+    app.kubernetes.io/component: os-image
+spec:
+  source:
+    registry:
+      url: "docker://registry.redhat.io/rhel9/rhel-guest-image:latest"
+      pullMethod: node
+  pvc:
+    accessModes:
+      - ReadWriteMany
+    resources:
+      requests:
+        storage: 30Gi
+    storageClassName: ocs-storagecluster-ceph-rbd
+    volumeMode: Block
+---
+# DataVolume for Fedora Cloud Image
+apiVersion: cdi.kubevirt.io/v1beta1
+kind: DataVolume
+metadata:
+  name: fedora-cloud-base
+  namespace: openshift-virtualization-os-images
+  labels:
+    app.kubernetes.io/name: fedora-cloud
+    app.kubernetes.io/component: os-image
+spec:
+  source:
+    http:
+      url: "https://download.fedoraproject.org/pub/fedora/linux/releases/39/Cloud/x86_64/images/Fedora-Cloud-Base-39-1.5.x86_64.qcow2"
+  pvc:
+    accessModes:
+      - ReadWriteMany
+    resources:
+      requests:
+        storage: 10Gi
+    storageClassName: ocs-storagecluster-ceph-rbd
+    volumeMode: Block
+---
+# DataVolume for CentOS Stream 9
+apiVersion: cdi.kubevirt.io/v1beta1
+kind: DataVolume
+metadata:
+  name: centos-stream9-base
+  namespace: openshift-virtualization-os-images
+  labels:
+    app.kubernetes.io/name: centos-stream9
+    app.kubernetes.io/component: os-image
+spec:
+  source:
+    http:
+      url: "https://cloud.centos.org/centos/9-stream/x86_64/images/CentOS-Stream-GenericCloud-9-latest.x86_64.qcow2"
+  pvc:
+    accessModes:
+      - ReadWriteMany
+    resources:
+      requests:
+        storage: 20Gi
+    storageClassName: ocs-storagecluster-ceph-rbd
+    volumeMode: Block
+---
+# DataVolume for Windows Server 2022 (requires manual upload or URL)
+apiVersion: cdi.kubevirt.io/v1beta1
+kind: DataVolume
+metadata:
+  name: windows-2022-base
+  namespace: openshift-virtualization-os-images
+  labels:
+    app.kubernetes.io/name: windows-2022
+    app.kubernetes.io/component: os-image
+  annotations:
+    cdi.kubevirt.io/storage.bind.immediate.requested: "true"
+spec:
+  source:
+    blank: {}
+  pvc:
+    accessModes:
+      - ReadWriteMany
+    resources:
+      requests:
+        storage: 60Gi
+    storageClassName: ocs-storagecluster-ceph-rbd
+    volumeMode: Block

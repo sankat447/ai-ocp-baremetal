@@ -1,0 +1,16 @@
+[all:vars]
+ansible_python_interpreter=/usr/bin/python3
+
+# OpenShift Connection
+k8s_kubeconfig=~/.kube/config
+
+# Default VM Settings
+default_namespace=aitp-vms
+default_storage_class=ocs-storagecluster-ceph-rbd
+default_os_image=rhel9-base-image
+
+# Networking
+vm_network_type=masquerade
+
+[localhost]
+localhost ansible_connection=local

@@ -1,0 +1,30 @@
+---
+# ForkliftController CR - Deploys MTV components
+apiVersion: forklift.konveyor.io/v1beta1
+kind: ForkliftController
+metadata:
+  name: forklift-controller
+  namespace: openshift-mtv
+spec:
+  # Feature configuration
+  feature_ui: true
+  feature_validation: true
+  feature_must_gather_api: true
+  
+  # Inventory polling interval (seconds)
+  inventory_tls_enabled: true
+  inventory_volume_path: /var/cache/inventory
+  
+  # Controller settings
+  controller_precopy_interval: 60
+  controller_snapshot_removal_timeout_minuts: 120
+  controller_snapshot_status_check_rate_seconds: 10
+  
+  # UI configuration
+  ui_tls_enabled: true
+  
+  # Validation settings
+  validation_tls_enabled: true
+  
+  # Volume populator settings
+  volume_populator_tls_enabled: true

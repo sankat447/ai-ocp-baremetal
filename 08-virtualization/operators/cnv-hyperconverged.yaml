@@ -1,0 +1,60 @@
+---
+# HyperConverged CR - Deploys OpenShift Virtualization components
+# This CR enables KubeVirt, CDI, Network Addons, and other CNV components
+apiVersion: hco.kubevirt.io/v1beta1
+kind: HyperConverged
+metadata:
+  name: kubevirt-hyperconverged
+  namespace: openshift-cnv
+spec:
+  # KubeVirt configuration
+  infra:
+    nodePlacement:
+      nodeSelector:
+        node-role.kubernetes.io/worker: ""
+  workloads:
+    nodePlacement:
+      nodeSelector:
+        node-role.kubernetes.io/worker: ""
+  
+  # Feature Gates - enable advanced features
+  featureGates:
+    # Enable GPU passthrough
+    withHostPassthroughCPU: true
+    # Enable hot plug volumes
+    enableCommonBootImageImport: true
+    # Live migration settings
+    deployKubeSecondaryDNS: false
+    deployTektonTaskResources: false
+  
+  # Live Migration configuration
+  liveMigrationConfig:
+    completionTimeoutPerGiB: 800
+    parallelMigrationsPerCluster: 5
+    parallelOutboundMigrationsPerNode: 2
+    progressTimeout: 150
+    bandwidthPerMigration: "64Mi"
+  
+  # Cert rotation configuration
+  certConfig:
+    ca:
+      duration: 48h
+      renewBefore: 24h
+    server:
+      duration: 24h
+      renewBefore: 12h
+  
+  # Storage import configuration
+  storageImport:
+    insecureRegistries:
+      - "image-registry.openshift-image-registry.svc:5000"
+  
+  # Resource requirements (optional - for production tuning)
+  resourceRequirements:
+    storageWorkloads:
+      limits:
+        cpu: "2"
+        memory: "4Gi"
+      requests:
+        cpu: "500m"
+        memory: "1Gi"

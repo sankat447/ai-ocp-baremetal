@@ -1,0 +1,39 @@
+---
+# Namespace for Virtual Machines
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: aitp-vms
+  labels:
+    app.kubernetes.io/part-of: aitp-virtualization
+---
+# Resource Quota for VM namespace
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: vm-resource-quota
+  namespace: aitp-vms
+spec:
+  hard:
+    requests.cpu: "32"
+    requests.memory: 128Gi
+    limits.cpu: "64"
+    limits.memory: 256Gi
+    persistentvolumeclaims: "50"
+    requests.storage: 2Ti
+---
+# Limit Range for VMs
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: vm-limit-range
+  namespace: aitp-vms
+spec:
+  limits:
+  - default:
+      cpu: "4"
+      memory: 8Gi
+    defaultRequest:
+      cpu: "2"
+      memory: 4Gi
+    type: Container

@@ -1,0 +1,273 @@
+---
+# VirtualMachine Template - Small Linux Server (2 vCPU, 4GB RAM)
+apiVersion: kubevirt.io/v1
+kind: VirtualMachine
+metadata:
+  name: rhel9-small-template
+  namespace: aitp-vms
+  labels:
+    app.kubernetes.io/name: rhel9-small
+    app.kubernetes.io/component: vm-template
+    vm.kubevirt.io/template: rhel9-server-small
+    workload.template.kubevirt.io/server: "true"
+  annotations:
+    description: "RHEL 9 Small Server - 2 vCPU, 4GB RAM, 30GB disk"
+spec:
+  running: false
+  template:
+    metadata:
+      labels:
+        kubevirt.io/domain: rhel9-small
+        kubevirt.io/size: small
+    spec:
+      domain:
+        cpu:
+          cores: 2
+          sockets: 1
+          threads: 1
+        memory:
+          guest: 4Gi
+        devices:
+          disks:
+            - name: rootdisk
+              disk:
+                bus: virtio
+              bootOrder: 1
+            - name: cloudinitdisk
+              disk:
+                bus: virtio
+          interfaces:
+            - name: default
+              masquerade: {}
+          networkInterfaceMultiqueue: true
+          rng: {}
+        machine:
+          type: pc-q35-rhel9.2.0
+        resources:
+          requests:
+            memory: 4Gi
+            cpu: "2"
+          limits:
+            memory: 4Gi
+            cpu: "2"
+      networks:
+        - name: default
+          pod: {}
+      terminationGracePeriodSeconds: 180
+      volumes:
+        - name: rootdisk
+          dataVolume:
+            name: rhel9-small-rootdisk
+        - name: cloudinitdisk
+          cloudInitNoCloud:
+            userData: |
+              #cloud-config
+              user: cloud-user
+              password: ${VM_PASSWORD}
+              chpasswd:
+                expire: false
+              ssh_pwauth: true
+              ssh_authorized_keys:
+                - ${SSH_PUBLIC_KEY}
+              packages:
+                - qemu-guest-agent
+              runcmd:
+                - systemctl enable --now qemu-guest-agent
+  dataVolumeTemplates:
+    - metadata:
+        name: rhel9-small-rootdisk
+      spec:
+        source:
+          pvc:
+            namespace: openshift-virtualization-os-images
+            name: rhel9-base-image
+        pvc:
+          accessModes:
+            - ReadWriteMany
+          resources:
+            requests:
+              storage: 30Gi
+          storageClassName: ocs-storagecluster-ceph-rbd
+          volumeMode: Block
+---
+# VirtualMachine Template - Medium Linux Server (4 vCPU, 8GB RAM)
+apiVersion: kubevirt.io/v1
+kind: VirtualMachine
+metadata:
+  name: rhel9-medium-template
+  namespace: aitp-vms
+  labels:
+    app.kubernetes.io/name: rhel9-medium
+    app.kubernetes.io/component: vm-template
+    vm.kubevirt.io/template: rhel9-server-medium
+    workload.template.kubevirt.io/server: "true"
+  annotations:
+    description: "RHEL 9 Medium Server - 4 vCPU, 8GB RAM, 50GB disk"
+spec:
+  running: false
+  template:
+    metadata:
+      labels:
+        kubevirt.io/domain: rhel9-medium
+        kubevirt.io/size: medium
+    spec:
+      domain:
+        cpu:
+          cores: 4
+          sockets: 1
+          threads: 1
+        memory:
+          guest: 8Gi
+        devices:
+          disks:
+            - name: rootdisk
+              disk:
+                bus: virtio
+              bootOrder: 1
+            - name: cloudinitdisk
+              disk:
+                bus: virtio
+          interfaces:
+            - name: default
+              masquerade: {}
+          networkInterfaceMultiqueue: true
+          rng: {}
+        machine:
+          type: pc-q35-rhel9.2.0
+        resources:
+          requests:
+            memory: 8Gi
+            cpu: "4"
+          limits:
+            memory: 8Gi
+            cpu: "4"
+      networks:
+        - name: default
+          pod: {}
+      terminationGracePeriodSeconds: 180
+      volumes:
+        - name: rootdisk
+          dataVolume:
+            name: rhel9-medium-rootdisk
+        - name: cloudinitdisk
+          cloudInitNoCloud:
+            userData: |
+              #cloud-config
+              user: cloud-user
+              password: ${VM_PASSWORD}
+              chpasswd:
+                expire: false
+              ssh_pwauth: true
+              ssh_authorized_keys:
+                - ${SSH_PUBLIC_KEY}
+              packages:
+                - qemu-guest-agent
+              runcmd:
+                - systemctl enable --now qemu-guest-agent
+  dataVolumeTemplates:
+    - metadata:
+        name: rhel9-medium-rootdisk
+      spec:
+        source:
+          pvc:
+            namespace: openshift-virtualization-os-images
+            name: rhel9-base-image
+        pvc:
+          accessModes:
+            - ReadWriteMany
+          resources:
+            requests:
+              storage: 50Gi
+          storageClassName: ocs-storagecluster-ceph-rbd
+          volumeMode: Block
+---
+# VirtualMachine Template - Large Linux Server (8 vCPU, 16GB RAM)
+apiVersion: kubevirt.io/v1
+kind: VirtualMachine
+metadata:
+  name: rhel9-large-template
+  namespace: aitp-vms
+  labels:
+    app.kubernetes.io/name: rhel9-large
+    app.kubernetes.io/component: vm-template
+    vm.kubevirt.io/template: rhel9-server-large
+    workload.template.kubevirt.io/server: "true"
+  annotations:
+    description: "RHEL 9 Large Server - 8 vCPU, 16GB RAM, 100GB disk"
+spec:
+  running: false
+  template:
+    metadata:
+      labels:
+        kubevirt.io/domain: rhel9-large
+        kubevirt.io/size: large
+    spec:
+      domain:
+        cpu:
+          cores: 8
+          sockets: 1
+          threads: 1
+        memory:
+          guest: 16Gi
+        devices:
+          disks:
+            - name: rootdisk
+              disk:
+                bus: virtio
+              bootOrder: 1
+            - name: cloudinitdisk
+              disk:
+                bus: virtio
+          interfaces:
+            - name: default
+              masquerade: {}
+          networkInterfaceMultiqueue: true
+          rng: {}
+        machine:
+          type: pc-q35-rhel9.2.0
+        resources:
+          requests:
+            memory: 16Gi
+            cpu: "8"
+          limits:
+            memory: 16Gi
+            cpu: "8"
+      networks:
+        - name: default
+          pod: {}
+      terminationGracePeriodSeconds: 180
+      volumes:
+        - name: rootdisk
+          dataVolume:
+            name: rhel9-large-rootdisk
+        - name: cloudinitdisk
+          cloudInitNoCloud:
+            userData: |
+              #cloud-config
+              user: cloud-user
+              password: ${VM_PASSWORD}
+              chpasswd:
+                expire: false
+              ssh_pwauth: true
+              ssh_authorized_keys:
+                - ${SSH_PUBLIC_KEY}
+              packages:
+                - qemu-guest-agent
+              runcmd:
+                - systemctl enable --now qemu-guest-agent
+  dataVolumeTemplates:
+    - metadata:
+        name: rhel9-large-rootdisk
+      spec:
+        source:
+          pvc:
+            namespace: openshift-virtualization-os-images
+            name: rhel9-base-image
+        pvc:
+          accessModes:
+            - ReadWriteMany
+          resources:
+            requests:
+              storage: 100Gi
+          storageClassName: ocs-storagecluster-ceph-rbd
+          volumeMode: Block

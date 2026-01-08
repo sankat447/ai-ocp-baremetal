@@ -1,0 +1,215 @@
+---
+# Ansible Playbook for VM Provisioning on OpenShift Virtualization
+# File: 08-virtualization/ansible/provision-vm.yaml
+- name: Provision Virtual Machine on OpenShift Virtualization
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  
+  vars:
+    # VM Configuration - Override these via extra-vars
+    vm_name: "{{ vm_name | default('test-vm') }}"
+    vm_namespace: "{{ vm_namespace | default('aitp-vms') }}"
+    vm_size: "{{ vm_size | default('small') }}"  # small, medium, large
+    vm_os_image: "{{ vm_os_image | default('rhel9-base-image') }}"
+    vm_storage_class: "{{ vm_storage_class | default('ocs-storagecluster-ceph-rbd') }}"
+    vm_password: "{{ vm_password | default('changeme123!') }}"
+    vm_ssh_key: "{{ vm_ssh_key | default('') }}"
+    vm_start: "{{ vm_start | default(true) }}"
+    
+    # Size definitions
+    vm_sizes:
+      small:
+        cpu_cores: 2
+        memory: 4Gi
+        disk_size: 30Gi
+      medium:
+        cpu_cores: 4
+        memory: 8Gi
+        disk_size: 50Gi
+      large:
+        cpu_cores: 8
+        memory: 16Gi
+        disk_size: 100Gi
+      xlarge:
+        cpu_cores: 16
+        memory: 32Gi
+        disk_size: 200Gi
+  
+  tasks:
+    - name: Validate VM size
+      ansible.builtin.assert:
+        that:
+          - vm_size in vm_sizes
+        fail_msg: "Invalid VM size: {{ vm_size }}. Valid options: small, medium, large, xlarge"
+    
+    - name: Set VM specifications based on size
+      ansible.builtin.set_fact:
+        vm_cpu: "{{ vm_sizes[vm_size].cpu_cores }}"
+        vm_memory: "{{ vm_sizes[vm_size].memory }}"
+        vm_disk: "{{ vm_sizes[vm_size].disk_size }}"
+    
+    - name: Display VM configuration
+      ansible.builtin.debug:
+        msg:
+          - "Creating VM: {{ vm_name }}"
+          - "Namespace: {{ vm_namespace }}"
+          - "Size: {{ vm_size }}"
+          - "CPU Cores: {{ vm_cpu }}"
+          - "Memory: {{ vm_memory }}"
+          - "Disk: {{ vm_disk }}"
+    
+    - name: Ensure namespace exists
+      kubernetes.core.k8s:
+        state: present
+        definition:
+          apiVersion: v1
+          kind: Namespace
+          metadata:
+            name: "{{ vm_namespace }}"
+    
+    - name: Create VirtualMachine
+      kubernetes.core.k8s:
+        state: present
+        definition:
+          apiVersion: kubevirt.io/v1
+          kind: VirtualMachine
+          metadata:
+            name: "{{ vm_name }}"
+            namespace: "{{ vm_namespace }}"
+            labels:
+              app.kubernetes.io/name: "{{ vm_name }}"
+              kubevirt.io/size: "{{ vm_size }}"
+          spec:
+            running: "{{ vm_start }}"
+            template:
+              metadata:
+                labels:
+                  kubevirt.io/domain: "{{ vm_name }}"
+                  kubevirt.io/size: "{{ vm_size }}"
+              spec:
+                domain:
+                  cpu:
+                    cores: "{{ vm_cpu | int }}"
+                    sockets: 1
+                    threads: 1
+                  memory:
+                    guest: "{{ vm_memory }}"
+                  devices:
+                    disks:
+                      - name: rootdisk
+                        disk:
+                          bus: virtio
+                        bootOrder: 1
+                      - name: cloudinitdisk
+                        disk:
+                          bus: virtio
+                    interfaces:
+                      - name: default
+                        masquerade: {}
+                    networkInterfaceMultiqueue: true
+                    rng: {}
+                  machine:
+                    type: pc-q35-rhel9.2.0
+                  resources:
+                    requests:
+                      memory: "{{ vm_memory }}"
+                      cpu: "{{ vm_cpu }}"
+                networks:
+                  - name: default
+                    pod: {}
+                terminationGracePeriodSeconds: 180
+                volumes:
+                  - name: rootdisk
+                    dataVolume:
+                      name: "{{ vm_name }}-rootdisk"
+                  - name: cloudinitdisk
+                    cloudInitNoCloud:
+                      userData: |
+                        #cloud-config
+                        hostname: {{ vm_name }}
+                        user: cloud-user
+                        password: {{ vm_password }}
+                        chpasswd:
+                          expire: true
+                        ssh_pwauth: true
+                        {% if vm_ssh_key %}
+                        ssh_authorized_keys:
+                          - {{ vm_ssh_key }}
+                        {% endif %}
+                        packages:
+                          - qemu-guest-agent
+                        runcmd:
+                          - systemctl enable --now qemu-guest-agent
+            dataVolumeTemplates:
+              - metadata:
+                  name: "{{ vm_name }}-rootdisk"
+                spec:
+                  source:
+                    pvc:
+                      namespace: openshift-virtualization-os-images
+                      name: "{{ vm_os_image }}"
+                  pvc:
+                    accessModes:
+                      - ReadWriteMany
+                    resources:
+                      requests:
+                        storage: "{{ vm_disk }}"
+                    storageClassName: "{{ vm_storage_class }}"
+                    volumeMode: Block
+    
+    - name: Wait for VM to be ready
+      kubernetes.core.k8s_info:
+        api_version: kubevirt.io/v1
+        kind: VirtualMachine
+        name: "{{ vm_name }}"
+        namespace: "{{ vm_namespace }}"
+      register: vm_info
+      until: >-
+        vm_info.resources | length > 0 and
+        vm_info.resources[0].status.ready | default(false)
+      retries: 60
+      delay: 10
+      when: vm_start | bool
+    
+    - name: Get VMI IP address
+      kubernetes.core.k8s_info:
+        api_version: kubevirt.io/v1
+        kind: VirtualMachineInstance
+        name: "{{ vm_name }}"
+        namespace: "{{ vm_namespace }}"
+      register: vmi_info
+      when: vm_start | bool
+    
+    - name: Display VM information
+      ansible.builtin.debug:
+        msg:
+          - "VM {{ vm_name }} created successfully!"
+          - "IP Address: {{ vmi_info.resources[0].status.interfaces[0].ipAddress | default('Pending') }}"
+          - "Status: {{ vm_info.resources[0].status.printableStatus | default('Unknown') }}"
+      when: vm_start | bool
+
+---
+# Playbook for bulk VM provisioning
+- name: Bulk Provision VMs
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  
+  vars:
+    vms: []  # List of VM definitions to create
+    # Example:
+    # vms:
+    #   - name: vm1
+    #     size: small
+    #     namespace: aitp-vms
+    #   - name: vm2
+    #     size: medium
+    #     namespace: aitp-vms
+  
+  tasks:
+    - name: Provision each VM
+      ansible.builtin.include_tasks: provision-single-vm.yaml
+      loop: "{{ vms }}"
+      loop_control:
+        loop_var: vm

@@ -1,0 +1,324 @@
+---
+# Example VM: Development Server
+apiVersion: kubevirt.io/v1
+kind: VirtualMachine
+metadata:
+  name: dev-server-01
+  namespace: aitp-vms
+  labels:
+    app.kubernetes.io/name: dev-server
+    app.kubernetes.io/component: development
+    environment: development
+spec:
+  running: true
+  template:
+    metadata:
+      labels:
+        kubevirt.io/domain: dev-server-01
+        kubevirt.io/size: medium
+        environment: development
+    spec:
+      domain:
+        cpu:
+          cores: 4
+          sockets: 1
+          threads: 1
+        memory:
+          guest: 8Gi
+        devices:
+          disks:
+            - name: rootdisk
+              disk:
+                bus: virtio
+              bootOrder: 1
+            - name: cloudinitdisk
+              disk:
+                bus: virtio
+          interfaces:
+            - name: default
+              masquerade: {}
+          networkInterfaceMultiqueue: true
+          rng: {}
+        machine:
+          type: pc-q35-rhel9.2.0
+        resources:
+          requests:
+            memory: 8Gi
+            cpu: "4"
+      networks:
+        - name: default
+          pod: {}
+      terminationGracePeriodSeconds: 180
+      volumes:
+        - name: rootdisk
+          dataVolume:
+            name: dev-server-01-rootdisk
+        - name: cloudinitdisk
+          cloudInitNoCloud:
+            userData: |
+              #cloud-config
+              hostname: dev-server-01
+              fqdn: dev-server-01.aitp-vms.svc.cluster.local
+              user: cloud-user
+              password: changeme123!
+              chpasswd:
+                expire: true
+              ssh_pwauth: true
+              packages:
+                - qemu-guest-agent
+                - git
+                - vim
+                - htop
+                - curl
+                - wget
+              runcmd:
+                - systemctl enable --now qemu-guest-agent
+                - echo "Development server ready" > /etc/motd
+  dataVolumeTemplates:
+    - metadata:
+        name: dev-server-01-rootdisk
+      spec:
+        source:
+          pvc:
+            namespace: openshift-virtualization-os-images
+            name: rhel9-base-image
+        pvc:
+          accessModes:
+            - ReadWriteMany
+          resources:
+            requests:
+              storage: 50Gi
+          storageClassName: ocs-storagecluster-ceph-rbd
+          volumeMode: Block
+---
+# Example VM: Database Server
+apiVersion: kubevirt.io/v1
+kind: VirtualMachine
+metadata:
+  name: db-server-01
+  namespace: aitp-vms
+  labels:
+    app.kubernetes.io/name: db-server
+    app.kubernetes.io/component: database
+    environment: production
+spec:
+  running: true
+  template:
+    metadata:
+      labels:
+        kubevirt.io/domain: db-server-01
+        kubevirt.io/size: large
+        environment: production
+    spec:
+      domain:
+        cpu:
+          cores: 8
+          sockets: 1
+          threads: 1
+          dedicatedCpuPlacement: true
+        memory:
+          guest: 32Gi
+          hugepages:
+            pageSize: 2Mi
+        devices:
+          disks:
+            - name: rootdisk
+              disk:
+                bus: virtio
+              bootOrder: 1
+            - name: datadisk
+              disk:
+                bus: virtio
+            - name: cloudinitdisk
+              disk:
+                bus: virtio
+          interfaces:
+            - name: default
+              masquerade: {}
+          networkInterfaceMultiqueue: true
+          rng: {}
+        machine:
+          type: pc-q35-rhel9.2.0
+        resources:
+          requests:
+            memory: 32Gi
+            cpu: "8"
+          limits:
+            memory: 32Gi
+            cpu: "8"
+      networks:
+        - name: default
+          pod: {}
+      terminationGracePeriodSeconds: 300
+      volumes:
+        - name: rootdisk
+          dataVolume:
+            name: db-server-01-rootdisk
+        - name: datadisk
+          dataVolume:
+            name: db-server-01-datadisk
+        - name: cloudinitdisk
+          cloudInitNoCloud:
+            userData: |
+              #cloud-config
+              hostname: db-server-01
+              fqdn: db-server-01.aitp-vms.svc.cluster.local
+              user: cloud-user
+              password: changeme123!
+              chpasswd:
+                expire: true
+              ssh_pwauth: true
+              packages:
+                - qemu-guest-agent
+                - vim
+                - htop
+              runcmd:
+                - systemctl enable --now qemu-guest-agent
+                - mkfs.xfs /dev/vdb
+                - mkdir -p /data
+                - echo "/dev/vdb /data xfs defaults 0 0" >> /etc/fstab
+                - mount -a
+                - echo "Database server ready" > /etc/motd
+  dataVolumeTemplates:
+    - metadata:
+        name: db-server-01-rootdisk
+      spec:
+        source:
+          pvc:
+            namespace: openshift-virtualization-os-images
+            name: rhel9-base-image
+        pvc:
+          accessModes:
+            - ReadWriteMany
+          resources:
+            requests:
+              storage: 50Gi
+          storageClassName: ocs-storagecluster-ceph-rbd
+          volumeMode: Block
+    - metadata:
+        name: db-server-01-datadisk
+      spec:
+        source:
+          blank: {}
+        pvc:
+          accessModes:
+            - ReadWriteMany
+          resources:
+            requests:
+              storage: 200Gi
+          storageClassName: ocs-storagecluster-ceph-rbd
+          volumeMode: Block
+---
+# Example VM: Web Server with NodePort Service
+apiVersion: kubevirt.io/v1
+kind: VirtualMachine
+metadata:
+  name: web-server-01
+  namespace: aitp-vms
+  labels:
+    app.kubernetes.io/name: web-server
+    app.kubernetes.io/component: webserver
+    environment: production
+spec:
+  running: true
+  template:
+    metadata:
+      labels:
+        kubevirt.io/domain: web-server-01
+        kubevirt.io/size: small
+        environment: production
+        app: web-server
+    spec:
+      domain:
+        cpu:
+          cores: 2
+          sockets: 1
+          threads: 1
+        memory:
+          guest: 4Gi
+        devices:
+          disks:
+            - name: rootdisk
+              disk:
+                bus: virtio
+              bootOrder: 1
+            - name: cloudinitdisk
+              disk:
+                bus: virtio
+          interfaces:
+            - name: default
+              masquerade: {}
+          networkInterfaceMultiqueue: true
+          rng: {}
+        machine:
+          type: pc-q35-rhel9.2.0
+        resources:
+          requests:
+            memory: 4Gi
+            cpu: "2"
+      networks:
+        - name: default
+          pod: {}
+      terminationGracePeriodSeconds: 180
+      volumes:
+        - name: rootdisk
+          dataVolume:
+            name: web-server-01-rootdisk
+        - name: cloudinitdisk
+          cloudInitNoCloud:
+            userData: |
+              #cloud-config
+              hostname: web-server-01
+              fqdn: web-server-01.aitp-vms.svc.cluster.local
+              user: cloud-user
+              password: changeme123!
+              chpasswd:
+                expire: true
+              ssh_pwauth: true
+              packages:
+                - qemu-guest-agent
+                - httpd
+                - mod_ssl
+              runcmd:
+                - systemctl enable --now qemu-guest-agent
+                - systemctl enable --now httpd
+                - firewall-cmd --permanent --add-service=http
+                - firewall-cmd --permanent --add-service=https
+                - firewall-cmd --reload
+                - echo "Web server ready" > /var/www/html/index.html
+  dataVolumeTemplates:
+    - metadata:
+        name: web-server-01-rootdisk
+      spec:
+        source:
+          pvc:
+            namespace: openshift-virtualization-os-images
+            name: rhel9-base-image
+        pvc:
+          accessModes:
+            - ReadWriteMany
+          resources:
+            requests:
+              storage: 30Gi
+          storageClassName: ocs-storagecluster-ceph-rbd
+          volumeMode: Block
+---
+# Service to expose Web Server
+apiVersion: v1
+kind: Service
+metadata:
+  name: web-server-01-http
+  namespace: aitp-vms
+  labels:
+    app: web-server
+spec:
+  selector:
+    app: web-server
+  ports:
+    - name: http
+      port: 80
+      targetPort: 80
+    - name: https
+      port: 443
+      targetPort: 443
+  type: ClusterIP

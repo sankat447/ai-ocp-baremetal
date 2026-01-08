@@ -1,0 +1,152 @@
+---
+# MTV Provider - VMware vSphere Example
+# This defines the source virtualization platform for migrations
+apiVersion: forklift.konveyor.io/v1beta1
+kind: Provider
+metadata:
+  name: vmware-vsphere-source
+  namespace: openshift-mtv
+spec:
+  type: vsphere
+  url: "https://vcenter.example.com/sdk"
+  secret:
+    name: vsphere-credentials
+    namespace: openshift-mtv
+---
+# Secret for vSphere credentials
+apiVersion: v1
+kind: Secret
+metadata:
+  name: vsphere-credentials
+  namespace: openshift-mtv
+type: Opaque
+stringData:
+  user: "administrator@vsphere.local"
+  password: "CHANGE_ME"
+  thumbprint: "XX:XX:XX:XX:XX:XX:XX:XX:XX:XX:XX:XX:XX:XX:XX:XX:XX:XX:XX:XX"
+---
+# MTV Provider - OpenShift Virtualization (Target)
+apiVersion: forklift.konveyor.io/v1beta1
+kind: Provider
+metadata:
+  name: host
+  namespace: openshift-mtv
+spec:
+  type: openshift
+  url: ""
+---
+# MTV Provider - oVirt/RHV Example
+apiVersion: forklift.konveyor.io/v1beta1
+kind: Provider
+metadata:
+  name: rhv-source
+  namespace: openshift-mtv
+spec:
+  type: ovirt
+  url: "https://rhvm.example.com/ovirt-engine/api"
+  secret:
+    name: rhv-credentials
+    namespace: openshift-mtv
+---
+# Secret for RHV credentials
+apiVersion: v1
+kind: Secret
+metadata:
+  name: rhv-credentials
+  namespace: openshift-mtv
+type: Opaque
+stringData:
+  user: "admin@internal"
+  password: "CHANGE_ME"
+  cacert: |
+    -----BEGIN CERTIFICATE-----
+    # Add your CA certificate here
+    -----END CERTIFICATE-----
+---
+# Storage Map - Maps source storage to OCP storage
+apiVersion: forklift.konveyor.io/v1beta1
+kind: StorageMap
+metadata:
+  name: vsphere-storage-map
+  namespace: openshift-mtv
+spec:
+  map:
+    - source:
+        id: datastore-1234  # vSphere datastore ID
+      destination:
+        storageClass: ocs-storagecluster-ceph-rbd
+        accessMode: ReadWriteMany
+        volumeMode: Block
+  provider:
+    source:
+      name: vmware-vsphere-source
+      namespace: openshift-mtv
+    destination:
+      name: host
+      namespace: openshift-mtv
+---
+# Network Map - Maps source networks to OCP networks
+apiVersion: forklift.konveyor.io/v1beta1
+kind: NetworkMap
+metadata:
+  name: vsphere-network-map
+  namespace: openshift-mtv
+spec:
+  map:
+    - source:
+        id: network-1234  # vSphere network ID
+      destination:
+        type: pod
+  provider:
+    source:
+      name: vmware-vsphere-source
+      namespace: openshift-mtv
+    destination:
+      name: host
+      namespace: openshift-mtv
+---
+# Migration Plan - Defines which VMs to migrate
+apiVersion: forklift.konveyor.io/v1beta1
+kind: Plan
+metadata:
+  name: vsphere-migration-plan
+  namespace: openshift-mtv
+spec:
+  provider:
+    source:
+      name: vmware-vsphere-source
+      namespace: openshift-mtv
+    destination:
+      name: host
+      namespace: openshift-mtv
+  map:
+    storage:
+      name: vsphere-storage-map
+      namespace: openshift-mtv
+    network:
+      name: vsphere-network-map
+      namespace: openshift-mtv
+  targetNamespace: aitp-vms
+  # Warm migration settings (optional)
+  warm: false
+  # List of VMs to migrate
+  vms:
+    - id: vm-1234  # vSphere VM ID
+      name: legacy-app-server
+    - id: vm-5678
+      name: database-server
+  # Preserve static IPs (optional)
+  preserveStaticIPs: false
+---
+# Migration - Executes the migration plan
+apiVersion: forklift.konveyor.io/v1beta1
+kind: Migration
+metadata:
+  name: vsphere-migration-001
+  namespace: openshift-mtv
+spec:
+  plan:
+    name: vsphere-migration-plan
+    namespace: openshift-mtv
+  # Set cutover time for warm migrations
+  # cutover: "2024-12-31T23:59:59Z"

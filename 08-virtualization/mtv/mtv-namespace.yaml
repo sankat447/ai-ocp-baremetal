@@ -1,0 +1,8 @@
+---
+# MTV (Migration Toolkit for Virtualization) Namespace
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: openshift-mtv
+  labels:
+    openshift.io/cluster-monitoring: "true"
